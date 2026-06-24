@@ -47,7 +47,7 @@ function dotSprite(): string {
   // TODO: replace with custom dot/pellet artwork
   return `
   <g id="sprite-dot">
-    <circle cx="7" cy="7" r="2.5" fill="#58a6ff"/>
+    <circle cx="7" cy="7" r="2.5" fill="#FFD700"/>
   </g>`;
 }
 
