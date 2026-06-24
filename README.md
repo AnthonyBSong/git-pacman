@@ -1,4 +1,4 @@
-# git-pacman
+<h1><img src="https://raw.githubusercontent.com/AnthonyBSong/git-pacman/main/assets/figures/logo.png" width="42" alt="git-pacman logo"/> git-pacman</h1>
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/AnthonyBSong/git-pacman/main.yml?label=action&style=flat-square)](https://github.com/AnthonyBSong/git-pacman/actions/)
 [![GitHub release](https://img.shields.io/github/release/AnthonyBSong/git-pacman.svg?style=flat-square)](https://github.com/AnthonyBSong/git-pacman/releases/latest)
 [![GitHub marketplace](https://img.shields.io/badge/marketplace-git--pacman--viz-blue?logo=github&style=flat-square)](https://github.com/marketplace/actions/git-pacman-viz)
