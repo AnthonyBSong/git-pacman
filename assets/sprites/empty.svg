@@ -1,0 +1,8 @@
+<!--
+  PLACEHOLDER: Empty cell sprite (inactive / no-contribution day)
+  Replace with custom artwork or leave blank.
+  Canvas: 14×14px.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14" width="14" height="14">
+  <rect x="2" y="2" width="10" height="10" rx="2" fill="#161b22" opacity="0.6"/>
+</svg>

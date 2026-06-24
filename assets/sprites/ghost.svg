@@ -1,0 +1,16 @@
+<!--
+  PLACEHOLDER: Ghost sprite (Blinky — red)
+  Replace with custom artwork. Duplicate and recolor for Pinky, Inky, Clyde.
+  Canvas: 14×14px.
+  Color variants used in svg-creator/src/index.ts:
+    blinky = #FF0000, pinky = #FFB8FF, clyde = #FFB852, inky = #00FFFF
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14" width="14" height="14">
+  <rect x="1" y="4" width="12" height="8" rx="6" fill="#FF0000"/>
+  <circle cx="5" cy="7" r="2" fill="white"/>
+  <circle cx="9" cy="7" r="2" fill="white"/>
+  <circle cx="5.5" cy="7.5" r="1" fill="#333"/>
+  <circle cx="9.5" cy="7.5" r="1" fill="#333"/>
+  <!-- Skirt with wavy bottom -->
+  <path d="M1,12 L1,14 L3.5,12 L5,14 L7,12 L9,14 L10.5,12 L13,14 L13,12 Z" fill="#FF0000"/>
+</svg>

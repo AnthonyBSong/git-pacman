@@ -1,0 +1,9 @@
+<!--
+  PLACEHOLDER: Dot / pellet sprite
+  Replace with custom artwork.
+  Canvas: 14×14px, centered on the cell.
+  Active contribution days render this sprite; inactive days render empty.svg.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14" width="14" height="14">
+  <circle cx="7" cy="7" r="2.5" fill="#58a6ff"/>
+</svg>

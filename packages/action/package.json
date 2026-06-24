@@ -1,0 +1,18 @@
+{
+  "name": "@git-pacman/action",
+  "version": "1.0.0",
+  "description": "GitHub Action entry point — fetches contributions and writes pacman.svg",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@git-pacman/github-contributions": "*",
+    "@git-pacman/grid": "*",
+    "@git-pacman/svg-creator": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

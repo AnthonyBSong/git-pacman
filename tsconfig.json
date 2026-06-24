@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true
+  },
+  "references": [
+    { "path": "packages/github-contributions" },
+    { "path": "packages/grid" },
+    { "path": "packages/svg-creator" },
+    { "path": "packages/action" }
+  ]
+}

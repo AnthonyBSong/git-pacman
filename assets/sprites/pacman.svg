@@ -1,0 +1,11 @@
+<!--
+  PLACEHOLDER: Pac-Man sprite
+  Replace this file with your custom artwork.
+  Canvas: 14×14px, character should fill the canvas.
+  The sprite is rotated at runtime to face movement direction (right=0°, down=90°, left=180°, up=270°).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14" width="14" height="14">
+  <circle cx="7" cy="7" r="6" fill="#FFD700"/>
+  <!-- Mouth wedge — open to the right -->
+  <polygon points="7,7 13,4 13,10" fill="#000"/>
+</svg>

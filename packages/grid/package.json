@@ -1,0 +1,16 @@
+{
+  "name": "@git-pacman/grid",
+  "version": "1.0.0",
+  "description": "Builds the Pac-Man dot grid and computes a traversal path through active cells",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@git-pacman/github-contributions": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

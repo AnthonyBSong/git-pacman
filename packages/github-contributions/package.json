@@ -1,0 +1,13 @@
+{
+  "name": "@git-pacman/github-contributions",
+  "version": "1.0.0",
+  "description": "Fetches GitHub contribution calendar data via GraphQL API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

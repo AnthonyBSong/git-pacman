@@ -1,0 +1,49 @@
+name: Generate Pac-Man contribution animation
+
+on:
+  schedule:
+    # Runs daily at midnight UTC
+    - cron: "0 0 * * *"
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+  push:
+    branches:
+      - main
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed to push the generated SVG
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Generate SVG
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          USERNAME: AnthonyBSong
+          OUTPUT_PATH: dist/pacman.svg
+        run: node packages/action/dist/index.js
+
+      - name: Push SVG to output branch
+        uses: crazy-max/ghaction-github-pages@v4
+        with:
+          target_branch: output
+          build_dir: dist
+          keep_history: false
+          commit_message: "chore: update pacman animation [skip ci]"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,16 @@
+{
+  "name": "@git-pacman/svg-creator",
+  "version": "1.0.0",
+  "description": "Generates the animated SVG with Pac-Man eating contribution dots",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@git-pacman/grid": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
