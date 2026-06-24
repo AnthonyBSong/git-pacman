@@ -1,6 +1,7 @@
 # git-pacman
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/AnthonyBSong/git-pacman/main.yml?label=action&style=flat-square)](https://github.com/AnthonyBSong/git-pacman/actions/)
 [![GitHub release](https://img.shields.io/github/release/AnthonyBSong/git-pacman.svg?style=flat-square)](https://github.com/AnthonyBSong/git-pacman/releases/latest)
+[![GitHub marketplace](https://img.shields.io/badge/marketplace-git--pacman--viz-blue?logo=github&style=flat-square)](https://github.com/marketplace/actions/git-pacman-viz)
 ![type definitions](https://img.shields.io/npm/types/typescript?style=flat-square)
 
 ![Pac-Man contributions](https://raw.githubusercontent.com/AnthonyBSong/git-pacman/output/pacman.svg)
@@ -17,9 +18,16 @@ Turns your GitHub contribution chart into an animated Pac-Man animation. Can be 
 
 ## Usage Guide
 
-### 1. Create a workflow in your profile repo
+Add this to a workflow in your `YOUR_USERNAME/YOUR_USERNAME` profile repository:
 
-In your `YOUR_USERNAME/YOUR_USERNAME` profile repository, create `.github/workflows/pacman.yml`:
+```yaml
+- uses: AnthonyBSong/git-pacman@v1
+  with:
+    github_user_name: ${{ github.repository_owner }}
+    github_token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+### Full workflow — create `.github/workflows/pacman.yml`:
 
 ```yaml
 name: Generate Pac-Man contribution animation
