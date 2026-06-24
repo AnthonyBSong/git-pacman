@@ -65,24 +65,64 @@ function renderPacman(
   </g>`;
 }
 
+// Pupil x-positions per direction.
+// Left eye white: x=2..4. Right eye white: x=8..10.
+// Pupil is 1×2; right-facing → right side of eye; left-facing → left side.
+const PUPIL_X: Record<Direction, { left: number; right: number }> = {
+  right: { left: 4, right: 10 },
+  left:  { left: 2, right: 8  },
+  up:    { left: 4, right: 10 }, // treat up/down as right-facing
+  down:  { left: 2, right: 8  }, // treat down as left-facing
+};
+
 function renderGhost(
   color: string,
   translateValues: string,
+  leftPupilX: string,   // per-frame x for left-eye pupil
+  rightPupilX: string,  // per-frame x for right-eye pupil
   keyTimes: string,
   dur: number
 ): string {
+  // SPRITE: pixel-art ghost traced from ghost_right.jpeg (14×14 canvas).
+  // Replace rect/circle shapes with custom artwork to reskin.
   return `
   <g>
     <animateTransform attributeName="transform" type="translate"
       values="${translateValues}" keyTimes="${keyTimes}"
       dur="${dur}s" repeatCount="indefinite" calcMode="discrete"/>
-    <!-- SPRITE: Ghost — replace shapes with custom artwork (14×14 canvas) -->
-    <rect x="1" y="4" width="12" height="8" rx="6" fill="${color}"/>
-    <circle cx="5" cy="7" r="2" fill="white"/>
-    <circle cx="9" cy="7" r="2" fill="white"/>
-    <circle cx="5.5" cy="7.5" r="1" fill="#222"/>
-    <circle cx="9.5" cy="7.5" r="1" fill="#222"/>
-    <path d="M1,12 L1,14 L3.5,12 L5,14 L7,12 L9,14 L10.5,12 L13,14 L13,12 Z" fill="${color}"/>
+    <!-- Top dome -->
+    <rect x="4"  y="0" width="6"  height="1" fill="${color}"/>
+    <rect x="3"  y="1" width="8"  height="1" fill="${color}"/>
+    <rect x="2"  y="2" width="10" height="1" fill="${color}"/>
+    <rect x="1"  y="3" width="12" height="1" fill="${color}"/>
+    <!-- Eye-row body (left edge, centre, right edge) -->
+    <rect x="1"  y="4" width="1"  height="4" fill="${color}"/>
+    <rect x="5"  y="4" width="3"  height="4" fill="${color}"/>
+    <rect x="11" y="4" width="2"  height="4" fill="${color}"/>
+    <!-- Main body rows 8-10 -->
+    <rect x="1"  y="8" width="12" height="3" fill="${color}"/>
+    <!-- Skirt: 3 feet bases (row 11) -->
+    <rect x="1"  y="11" width="3" height="1" fill="${color}"/>
+    <rect x="5"  y="11" width="3" height="1" fill="${color}"/>
+    <rect x="9"  y="11" width="3" height="1" fill="${color}"/>
+    <!-- Skirt: 3 feet tips (row 12) -->
+    <rect x="1"  y="12" width="2" height="1" fill="${color}"/>
+    <rect x="5"  y="12" width="2" height="1" fill="${color}"/>
+    <rect x="9"  y="12" width="2" height="1" fill="${color}"/>
+    <!-- Left eye white -->
+    <rect x="2" y="4" width="3" height="4" fill="white"/>
+    <!-- Left pupil — animates x between 2 (left-facing) and 4 (right-facing) -->
+    <rect y="6" width="1" height="2" fill="#1a1a1a">
+      <animate attributeName="x" values="${leftPupilX}"
+        keyTimes="${keyTimes}" dur="${dur}s" repeatCount="indefinite" calcMode="discrete"/>
+    </rect>
+    <!-- Right eye white -->
+    <rect x="8" y="4" width="3" height="4" fill="white"/>
+    <!-- Right pupil — animates x between 8 (left-facing) and 10 (right-facing) -->
+    <rect y="6" width="1" height="2" fill="#1a1a1a">
+      <animate attributeName="x" values="${rightPupilX}"
+        keyTimes="${keyTimes}" dur="${dur}s" repeatCount="indefinite" calcMode="discrete"/>
+    </rect>
   </g>`;
 }
 
@@ -158,21 +198,31 @@ export function createSvg(grid: PacmanGrid, options: SvgOptions = {}): string {
   const pacman = renderPacman(pacTranslate, pacRotate, keyTimes, totalDuration);
 
   // ── Ghosts — snake chain: ghost k is always exactly `offset` steps behind Pac-Man ──
-  const GHOST_COLORS = ["#FF0000", "#FFB8FF", "#FFB852", "#00FFFF"];
+  // Colors match the user's four ghost variants: red, pink, yellow, neon blue
+  const GHOST_COLORS = ["#FF0000", "#FFB8FF", "#FFD700", "#29ABE2"];
   const GHOST_OFFSETS = [4, 8, 12, 16];
 
   let ghosts = "";
   if (includeGhosts) {
     ghosts = GHOST_COLORS.map((color, gi) => {
       const offset = GHOST_OFFSETS[gi];
-      // At step i, this ghost is at path[max(0, i - offset)]
+
+      // At step i this ghost occupies path[max(0, i - offset)]
+      const src = (i: number) => grid.path[Math.max(0, i - offset)];
+
       const translateValues = grid.path
-        .map((_, i) => {
-          const src = grid.path[Math.max(0, i - offset)];
-          return `${PADDING + src.col * step},${PADDING + src.row * step}`;
-        })
+        .map((_, i) => `${PADDING + src(i).col * step},${PADDING + src(i).row * step}`)
         .join(";");
-      return renderGhost(color, translateValues, keyTimes, totalDuration);
+
+      // Pupil x positions update with the ghost's own movement direction
+      const leftPupilX = grid.path
+        .map((_, i) => PUPIL_X[src(i).direction].left)
+        .join(";");
+      const rightPupilX = grid.path
+        .map((_, i) => PUPIL_X[src(i).direction].right)
+        .join(";");
+
+      return renderGhost(color, translateValues, leftPupilX, rightPupilX, keyTimes, totalDuration);
     }).join("\n");
   }
 
