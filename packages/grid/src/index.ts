@@ -32,13 +32,12 @@ const CARDINAL: { dc: number; dr: number; dir: Direction }[] = [
   { dc: 0, dr: -1, dir: "up" },
 ];
 
-const MAX_WALL_CLUSTER = 8; // largest allowed contiguous wall blob
+const MAX_WALL_CLUSTER = 8;
 
 export function buildGrid(contributions: ContributionGrid): PacmanGrid {
   const rows = 7;
   const cols = contributions.weeks.length;
 
-  // All inactive cells start as "wall" — only promoted to "floor" when needed.
   const cells: Cell[][] = Array.from({ length: cols }, (_, col) =>
     Array.from({ length: rows }, (_, row) => {
       const count =
@@ -57,68 +56,61 @@ export function buildGrid(contributions: ContributionGrid): PacmanGrid {
 
   if (activeCells.length === 0) return { cells, cols, rows, path: [] };
 
-  // Try 6 evenly-spaced BFS starting points; pick the one that leaves the most walls.
-  const candidateCount = Math.min(6, activeCells.length);
-  const candidates = Array.from({ length: candidateCount }, (_, i) =>
-    activeCells[Math.round((i / candidateCount) * (activeCells.length - 1))]
+  // ── Step 1: try 6 BFS start points, keep whichever uses fewest corridors ──
+  const n = activeCells.length;
+  const candidates = Array.from({ length: Math.min(6, n) }, (_, i) =>
+    activeCells[Math.round((i / Math.min(6, n)) * (n - 1))]
   );
 
-  let bestCorridors: Set<string> | null = null;
+  let bestCorridors = new Set<string>();
   let bestWallCount = -1;
-
   for (const [sc, sr] of candidates) {
-    const corridors = findMinimumCorridors(cells, cols, rows, sc, sr);
-    const wallCount = cols * rows - activeCells.length - corridors.size;
-    if (wallCount > bestWallCount) {
-      bestWallCount = wallCount;
-      bestCorridors = corridors;
-    }
+    const corridors = bfsCorridors(cells, cols, rows, sc, sr);
+    const wallCount = cols * rows - n - corridors.size;
+    if (wallCount > bestWallCount) { bestWallCount = wallCount; bestCorridors = corridors; }
   }
 
-  // Promote winning corridor set: inactive cells on shortest BFS paths become floor.
-  for (const key of bestCorridors!) {
+  for (const key of bestCorridors) {
     const [c, r] = key.split(",").map(Number);
     cells[c][r].cellType = "floor";
   }
 
-  // Break up any remaining wall blobs larger than MAX_WALL_CLUSTER by punching
-  // floor holes at each blob's geometric centroid, iterating until all blobs
-  // are small enough.
-  limitWallClusters(cells, cols, rows);
+  // ── Step 2: cap wall blobs at MAX_WALL_CLUSTER cells ──
+  // Prefer to punch holes at blob boundary (adjacent to floor) so the
+  // new floor cell is already connected — avoids isolated floor islands.
+  breakLargeWallBlobs(cells, cols, rows);
 
-  return { cells, cols, rows, path: computePath(cells, cols, rows) };
+  // ── Step 3: enforce connectivity — any floor cell unreachable from the
+  // DFS start reverts to wall so Pac-Man never needs to teleport. ──
+  const [startC, startR] = findCenter(cells, cols, rows);
+  pruneIsolatedFloors(cells, cols, rows, startC, startR);
+
+  return { cells, cols, rows, path: dfsPath(cells, cols, rows, startC, startR) };
 }
 
-/**
- * BFS from (startC, startR) through the entire grid.
- * Traces every active cell back to the BFS root via parent pointers and
- * collects the inactive cells on each shortest path as required corridors.
- */
-function findMinimumCorridors(
-  cells: Cell[][],
-  cols: number,
-  rows: number,
-  startC: number,
-  startR: number
-): Set<string> {
-  const parent: ([number, number] | null)[][] = Array.from({ length: cols }, () =>
-    new Array<[number, number] | null>(rows).fill(null)
-  );
-  const visited = Array.from({ length: cols }, () =>
-    new Array<boolean>(rows).fill(false)
-  );
+// ─────────────────────────────────────────────────────────────────────────────
 
-  visited[startC][startR] = true;
-  const queue: [number, number][] = [[startC, startR]];
+/** BFS through every cell; for each active cell traces the shortest path back
+ *  to the root and collects the inactive cells along the way as corridors. */
+function bfsCorridors(
+  cells: Cell[][], cols: number, rows: number,
+  startC: number, startR: number
+): Set<string> {
+  const parent: ([number, number] | null)[][] =
+    Array.from({ length: cols }, () => new Array<[number, number] | null>(rows).fill(null));
+  const vis = Array.from({ length: cols }, () => new Array<boolean>(rows).fill(false));
+
+  vis[startC][startR] = true;
+  const q: [number, number][] = [[startC, startR]];
   let qi = 0;
-  while (qi < queue.length) {
-    const [cc, rr] = queue[qi++];
+  while (qi < q.length) {
+    const [cc, rr] = q[qi++];
     for (const { dc, dr } of CARDINAL) {
       const nc = cc + dc, nr = rr + dr;
-      if (nc >= 0 && nc < cols && nr >= 0 && nr < rows && !visited[nc][nr]) {
-        visited[nc][nr] = true;
+      if (nc >= 0 && nc < cols && nr >= 0 && nr < rows && !vis[nc][nr]) {
+        vis[nc][nr] = true;
         parent[nc][nr] = [cc, rr];
-        queue.push([nc, nr]);
+        q.push([nc, nr]);
       }
     }
   }
@@ -138,24 +130,19 @@ function findMinimumCorridors(
   return corridors;
 }
 
-/**
- * Iteratively finds wall blobs larger than MAX_WALL_CLUSTER and promotes
- * their geometric centroid to floor, splitting the blob. Repeats until
- * every wall blob is within the size limit.
- */
-function limitWallClusters(cells: Cell[][], cols: number, rows: number): void {
+/** Iteratively finds wall blobs larger than MAX_WALL_CLUSTER and promotes one
+ *  cell to floor, preferring cells already adjacent to a floor cell so the new
+ *  floor is immediately connected (not isolated). Repeats until all blobs fit. */
+function breakLargeWallBlobs(cells: Cell[][], cols: number, rows: number): void {
   let changed = true;
   while (changed) {
     changed = false;
-    const wallVis = Array.from({ length: cols }, () =>
-      new Array<boolean>(rows).fill(false)
-    );
+    const wallVis = Array.from({ length: cols }, () => new Array<boolean>(rows).fill(false));
 
     for (let c0 = 0; c0 < cols; c0++) {
       for (let r0 = 0; r0 < rows; r0++) {
         if (cells[c0][r0].cellType !== "wall" || wallVis[c0][r0]) continue;
 
-        // BFS-collect this wall blob
         const blob: [number, number][] = [];
         const q: [number, number][] = [[c0, r0]];
         wallVis[c0][r0] = true;
@@ -175,16 +162,25 @@ function limitWallClusters(cells: Cell[][], cols: number, rows: number): void {
 
         if (blob.length <= MAX_WALL_CLUSTER) continue;
 
-        // Promote the geometric centroid of the blob to floor — this punches
-        // a hole through the middle, splitting it into smaller pieces.
         const avgC = blob.reduce((s, [c]) => s + c, 0) / blob.length;
         const avgR = blob.reduce((s, [, r]) => s + r, 0) / blob.length;
-        let best = blob[0];
-        let bestDist = Infinity;
-        for (const cell of blob) {
+
+        // Prefer a wall cell adjacent to an existing floor cell (already connected)
+        const boundary = blob.filter(([cc, rr]) =>
+          CARDINAL.some(({ dc, dr }) => {
+            const nc = cc + dc, nr = rr + dr;
+            return nc >= 0 && nc < cols && nr >= 0 && nr < rows &&
+                   cells[nc][nr].cellType === "floor";
+          })
+        );
+
+        const pool = boundary.length > 0 ? boundary : blob;
+        let best = pool[0], bestDist = Infinity;
+        for (const cell of pool) {
           const d = (cell[0] - avgC) ** 2 + (cell[1] - avgR) ** 2;
           if (d < bestDist) { bestDist = d; best = cell; }
         }
+
         cells[best[0]][best[1]].cellType = "floor";
         changed = true;
       }
@@ -192,27 +188,53 @@ function limitWallClusters(cells: Cell[][], cols: number, rows: number): void {
   }
 }
 
-/**
- * DFS through all non-wall cells starting from the cell closest to the
- * grid's center. With BFS corridor promotion guaranteeing connectivity,
- * this produces one continuous walk with no teleporting.
- */
-function computePath(cells: Cell[][], cols: number, rows: number): PathStep[] {
-  // Pick starting cell: non-wall cell nearest to grid center
-  const centerC = cols / 2, centerR = rows / 2;
-  let startC = -1, startR = -1, bestDist = Infinity;
-  for (let c = 0; c < cols; c++) {
-    for (let r = 0; r < rows; r++) {
-      if (cells[c][r].cellType === "wall") continue;
-      const d = Math.abs(c - centerC) + Math.abs(r - centerR);
-      if (d < bestDist) { bestDist = d; startC = c; startR = r; }
+/** BFS from (startC, startR) through non-wall cells; any floor cell that is
+ *  not reachable gets reverted to wall. Guarantees DFS never needs to teleport. */
+function pruneIsolatedFloors(
+  cells: Cell[][], cols: number, rows: number,
+  startC: number, startR: number
+): void {
+  const reachable = Array.from({ length: cols }, () => new Array<boolean>(rows).fill(false));
+  const q: [number, number][] = [[startC, startR]];
+  reachable[startC][startR] = true;
+  let qi = 0;
+  while (qi < q.length) {
+    const [cc, rr] = q[qi++];
+    for (const { dc, dr } of CARDINAL) {
+      const nc = cc + dc, nr = rr + dr;
+      if (nc >= 0 && nc < cols && nr >= 0 && nr < rows &&
+          !reachable[nc][nr] && cells[nc][nr].cellType !== "wall") {
+        reachable[nc][nr] = true;
+        q.push([nc, nr]);
+      }
     }
   }
-  if (startC === -1) return [];
+  for (let c = 0; c < cols; c++)
+    for (let r = 0; r < rows; r++)
+      if (!reachable[c][r] && cells[c][r].cellType === "floor")
+        cells[c][r].cellType = "wall";
+}
 
-  const visited = Array.from({ length: cols }, () =>
-    new Array<boolean>(rows).fill(false)
-  );
+/** Non-wall cell closest to the grid's center — natural Pac-Man start. */
+function findCenter(cells: Cell[][], cols: number, rows: number): [number, number] {
+  const cc = cols / 2, cr = rows / 2;
+  let bestC = 0, bestR = 0, bestDist = Infinity;
+  for (let c = 0; c < cols; c++)
+    for (let r = 0; r < rows; r++) {
+      if (cells[c][r].cellType === "wall") continue;
+      const d = Math.abs(c - cc) + Math.abs(r - cr);
+      if (d < bestDist) { bestDist = d; bestC = c; bestR = r; }
+    }
+  return [bestC, bestR];
+}
+
+/** DFS through non-wall cells from (startC, startR).
+ *  After pruneIsolatedFloors, the subgraph is fully connected — no teleporting. */
+function dfsPath(
+  cells: Cell[][], cols: number, rows: number,
+  startC: number, startR: number
+): PathStep[] {
+  const visited = Array.from({ length: cols }, () => new Array<boolean>(rows).fill(false));
   const path: PathStep[] = [];
 
   function dfs(col: number, row: number, dir: Direction): void {
@@ -228,21 +250,5 @@ function computePath(cells: Cell[][], cols: number, rows: number): PathStep[] {
   }
 
   dfs(startC, startR, "right");
-
-  // Safety fallback — should never fire after BFS corridor promotion
-  let more = true;
-  while (more) {
-    more = false;
-    for (let c = 0; c < cols; c++) {
-      for (let r = 0; r < rows; r++) {
-        if (!visited[c][r] && cells[c][r].cellType !== "wall") {
-          dfs(c, r, path[path.length - 1].direction);
-          more = true; break;
-        }
-      }
-      if (more) break;
-    }
-  }
-
   return path;
 }
