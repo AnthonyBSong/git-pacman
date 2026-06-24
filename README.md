@@ -20,35 +20,25 @@ Turns your GitHub contribution chart into an animated Pac-Man animation. Can be 
 
 ### 1. Fork this repo
 
-Fork `AnthonyBSong/git-pacman` to your own account. The workflow will
-automatically use your username via `github.repository_owner`.
+Fork `AnthonyBSong/git-pacman` to your own account. The workflow uses
+`github.repository_owner` automatically — no configuration needed.
 
-### 2. Create and install the GitHub App
+### 2. Install the git-pacman-viz GitHub App
 
-1. Go to **github.com → Settings → Developer settings → GitHub Apps → New GitHub App**
-2. Set **Homepage URL** to your fork's URL
-3. Disable webhooks
-4. Permissions: `Contents: Read & Write`, `Metadata: Read-only`
-5. Where can this be installed: **Any account**
-6. Create the app, note the **App ID**, and generate a **private key** (downloads a `.pem`)
-7. On the App page → **Install App** → install it on your fork
+[**Install git-pacman-viz →**](https://github.com/apps/git-pacman-viz)
 
-### 3. Add secrets to your fork
+Select your forked `git-pacman` repository when prompted. This grants
+the workflow permission to push the generated SVG to your `output` branch.
 
-Go to your fork → **Settings → Secrets and variables → Actions**:
-- **Secret**: `APP_ID`, **Value**: The number shown on your GitHub App page |
-- **Secret**: `APP_PRIVATE_KEY`, **Value**: Full contents of the downloaded `.pem` file |
-
-### 4. Trigger the Action
+### 3. Trigger the Action
 
 Run **Actions → Generate Pac-Man contribution animation → Run workflow**.
 
 The Action runs automatically every day at midnight UTC after that.
 
-### 5. Add to Personal Readme
+### 4. Add to your profile README
 
-After the Action runs, copy this into your profile `README.md`
-(replace `YOUR_USERNAME` with your GitHub username):
+After the Action runs, copy this into your `YOUR_USERNAME/YOUR_USERNAME` profile `README.md`:
 
 ```md
 ![Pac-Man contributions](https://raw.githubusercontent.com/YOUR_USERNAME/git-pacman/output/pacman.svg)
@@ -94,8 +84,7 @@ open dist/pacman.svg
 
 ## GitHub App
 
-`git-pacman` uses a GitHub App to securely push the generated animation back to your repository.
+[git-pacman-viz](https://github.com/apps/git-pacman-viz) is the GitHub App that powers this project.
+It requests only `Contents: Read & Write` on the repositories it is installed on — just enough to push the generated `pacman.svg` to your `output` branch. No personal access token or extra secrets required.
 
-The app only needs repository content access so the workflow can write the generated `pacman.svg` file to the `output` branch. This avoids using a personal access token and keeps the setup cleaner for users who fork the project.
-
-Git Pacman Viz is inspired by [Platane/snk](https://github.com/Platane/snk), but uses a Pac-Man-style animation, path traversal, dots, cherries, and ghost sprites to visualize your GitHub contribution chart.
+Inspired by [Platane/snk](https://github.com/Platane/snk), reimagined with Pac-Man path traversal, ghost sprites, dots, cherries, and maze walls.
