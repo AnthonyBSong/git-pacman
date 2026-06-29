@@ -1,7 +1,7 @@
 # git-contrib-viz
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/AnthonyBSong/git-pacman/main.yml?label=action&style=flat-square)](https://github.com/AnthonyBSong/git-pacman/actions/)
 [![GitHub release](https://img.shields.io/github/release/AnthonyBSong/git-pacman.svg?style=flat-square)](https://github.com/AnthonyBSong/git-pacman/releases/latest)
-[![GitHub marketplace](https://img.shields.io/badge/marketplace-git--pacman--viz-blue?logo=github&style=flat-square)](https://github.com/marketplace/actions/git-pacman-viz)
+[![GitHub marketplace](https://img.shields.io/badge/marketplace-git--pacman--viz-blue?logo=github&style=flat-square)](https://github.com/marketplace/actions/git-contrib-viz)
 ![type definitions](https://img.shields.io/npm/types/typescript?style=flat-square)
 
 ![Pac-Man contributions](https://raw.githubusercontent.com/AnthonyBSong/git-pacman/output/pacman.svg)
