@@ -1,0 +1,26 @@
+{
+  "name": "git-contrib-viz",
+  "version": "1.0.0",
+  "description": "Interactive CLI to set up the Pac-Man contribution animation in your GitHub profile repo",
+  "main": "dist/index.js",
+  "bin": {
+    "git-contrib-viz": "./bin/git-contrib-viz.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "bundle": "npm run build && ncc build dist/index.js -o dist/bundle --license licenses.txt"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "dependencies": {
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/prompts": "^2.4.9",
+    "@vercel/ncc": "^0.38.0",
+    "typescript": "^5.0.0"
+  }
+}

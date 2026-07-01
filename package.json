@@ -5,7 +5,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace packages/github-contributions && npm run build --workspace packages/grid && npm run build --workspace packages/svg-creator && npm run build --workspace packages/action",
+    "build": "npm run build --workspace packages/github-contributions && npm run build --workspace packages/grid && npm run build --workspace packages/svg-creator && npm run build --workspace packages/action && npm run build --workspace packages/cli",
     "bundle": "npm run build && ncc build packages/action/dist/index.js -o dist --license licenses.txt",
     "test": "npm test --workspaces --if-present"
   },

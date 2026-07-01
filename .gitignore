@@ -7,3 +7,7 @@ packages/*/dist/
 *.key
 *.p12
 *.pfx
+
+# Claude
+claude/
+CLAUDE.md
